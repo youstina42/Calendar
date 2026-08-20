@@ -21,7 +21,6 @@ import {
     Calendar as CalendarIcon,
     ChevronLeft,
     ChevronRight,
-    RotateCcw,
 } from "lucide-react";
 
 const LOCALES = { en: enUS, ar: arSA };
@@ -79,11 +78,14 @@ export default function CalendarPicker({
         label: "Last 365 days",
         range: { from: subYears(new Date(), 1), to: new Date() },
     },
+    { 
+        label: "Custom", range: null
+    },
     ],
     shouldSelectOneDate = false,
     onApply = (val) => console.log("Selected:", val),
 }) {
-
+    const [appliedPreset, setAppliedPreset] = useState("Today");
     const [isOpen, setIsOpen] = useState(false);
     const [selectedRange, setSelectedRange] = useState(
         value || (shouldSelectOneDate ? new Date() : {
@@ -116,6 +118,10 @@ export default function CalendarPicker({
 
     const handleShortcutClick = (preset) => {
         setActivePreset(preset.label);
+        if (preset.label === "Custom") {
+            setSelectedRange(null);
+            return;
+        }
         if (shouldSelectOneDate) {
         const singleDate = preset.range?.from || preset.range;
         setSelectedRange(singleDate);
@@ -149,6 +155,7 @@ export default function CalendarPicker({
     const handleReset = () => {
         setSelectedRange(shouldSelectOneDate ? null : { from: null, to: null });
         setActivePreset(null);
+        setAppliedPreset(null);
     };
 
     const renderDays = () => {
@@ -184,9 +191,9 @@ export default function CalendarPicker({
                 !isCurrentMonth
                 ? "text-gray-300"
                 : "text-gray-700 hover:bg-gray-100"
-            } ${isInRange && !isSelected ? "bg-cyan-50 text-cyan-600 rounded-none" : ""} ${
+            } $${isInRange && !isSelected ? "bg-gray-100 text-gray-800 rounded-none" : ""} ${
                 isSelected
-                ? "bg-cyan-600 text-white font-bold hover:bg-cyan-700"
+                ? "bg-blue-600 text-white font-bold hover:bg-blue-700"
                 : ""
             }`}
             >
@@ -198,18 +205,19 @@ export default function CalendarPicker({
 
     //input text
     const getInputValue = () => {
-        if (shouldSelectOneDate) {
-        return selectedRange
-            ? format(selectedRange, "PP", { locale: activeLocale })
-            : "";
-        }
-        if (selectedRange?.from && selectedRange?.to) {
-        return `${format(selectedRange.from, "MMM d", { locale: activeLocale })} - ${format(selectedRange.to, "MMM d", { locale: activeLocale })}`;
-        }
-        if (selectedRange?.from) {
-        return format(selectedRange.from, "MMM d", { locale: activeLocale });
-        }
-        return "";
+    let dateText = "";
+
+    if (shouldSelectOneDate) {
+        dateText = selectedRange ? format(selectedRange, "PP", { locale: activeLocale }) : "";
+    } else if (selectedRange?.from && selectedRange?.to) {
+        dateText = `${format(selectedRange.from, "MMM d", { locale: activeLocale })} - ${format(selectedRange.to, "MMM d", { locale: activeLocale })}`;
+    } else if (selectedRange?.from) {
+        dateText = format(selectedRange.from, "MMM d", { locale: activeLocale });
+    }
+
+    if (!dateText) return "";
+
+    return appliedPreset ? `${appliedPreset}: ${dateText}` : dateText;
     };
 
     const getPlacementClasses = () => {
@@ -243,7 +251,7 @@ export default function CalendarPicker({
             className={`flex items-center justify-between border rounded-lg p-2.5 text-sm bg-white shadow-sm transition-all ${
             disabled
                 ? "bg-gray-100 cursor-not-allowed opacity-60"
-                : "hover:border-cyan-500 focus:ring-2 focus:ring-cyan-500"
+                : "hover:border-blue-500 focus:ring-2 focus:ring-blue-500"
             } ${iconOnlyTrigger ? "w-10 h-10 justify-center p-0" : "w-full"}`}
         >
             <div className="flex items-center gap-2 overflow-hidden">
@@ -258,15 +266,6 @@ export default function CalendarPicker({
                 </span>
             )}
             </div>
-            {resetable && getInputValue() && !iconOnlyTrigger && (
-            <RotateCcw
-                className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600"
-                onClick={(e) => {
-                e.stopPropagation();
-                handleReset();
-                }}
-            />
-            )}
         </button>
 
         {isOpen && (hasBackdrop || isMobile) && (
@@ -288,7 +287,7 @@ export default function CalendarPicker({
                     onClick={() => handleShortcutClick(preset)}
                     className={`text-left text-xs font-medium px-3 py-2 rounded-lg whitespace-nowrap transition-colors ${
                         activePreset === preset.label
-                        ? "bg-cyan-50 text-cyan-600 font-semibold"
+                        ? "bg-blue-50 text-blue-600 font-semibold"
                         : "text-gray-600 hover:bg-gray-100"
                     }`}
                     >
@@ -316,7 +315,7 @@ export default function CalendarPicker({
                     </button>
                 </div>
 
-                <div className="grid grid-cols-7 text-center text-xs font-semibold text-gray-400 mb-2">
+                <div className="grid grid-cols-7 text-center text-xs font-semibold mb-2">
                     {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((d) => (
                     <div key={d}>{d}</div>
                     ))}
@@ -349,13 +348,14 @@ export default function CalendarPicker({
                 <button
                     disabled={disabledApplyBtn}
                     onClick={() => {
+                    setAppliedPreset(activePreset);
                     onApply(selectedRange);
                     setIsOpen(false);
                     }}
                     className={`px-3 py-1.5 text-xs font-medium text-white rounded-lg transition-colors ${
                     disabledApplyBtn
-                        ? "bg-cyan-300 cursor-not-allowed"
-                        : "bg-cyan-600 hover:bg-cyan-700"
+                        ? "bg-blue-300 cursor-not-allowed"
+                        : "bg-blue-600 hover:bg-blue-700"
                     }`}
                 >
                     Apply

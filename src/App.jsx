@@ -18,17 +18,12 @@ export default function App() {
         closeOnClickOutside={true}
         jumpToStartDateOnShortcutClick={true}
         customLocale="en"
+        value={dateRange}
         onApply={(selected) => {
           setDateRange(selected);
         }}
       />
 
-      {dateRange && (
-        <div className="p-4 bg-white rounded-lg shadow-sm border border-gray-200 text-sm text-gray-700">
-          <p>From: {dateRange.from ? dateRange.from.toDateString() : 'N/A'}</p>
-          <p>To: {dateRange.to ? dateRange.to.toDateString() : 'N/A'}</p>
-        </div>
-      )}
     </div>
   );
 }
